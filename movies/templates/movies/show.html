@@ -26,6 +26,41 @@
             </div>
           </form>
         </p>
+        <h2>Ratings</h2>
+        <hr />
+        <p>
+          <b>Average Rating: </b>
+          {% if template_data.average_rating %}
+            {{ template_data.average_rating }} / 5 Stars
+          {% else %}
+          There are no ratings yet.
+          {% endif %}
+        </p>
+        {% if user.is_authenticated %}
+        <div class = "mb-3">
+          <form method="POST" action="{% url 'movies.rate_movie' id=template_data.movie.id %}" class = "d-flex align-items-center gap-2">
+              {% csrf_token %}
+              <label for="stars"><b>Your Rating</b></label>
+              <select name = "stars" id="rating" class = "form-select w-auto">
+                <option value="1" {% if template_data.user_rating == 1 %}selected{% endif %}>1 Star</option>
+                <option value="2" {% if template_data.user_rating == 2 %}selected{% endif %}>2 Stars</option>
+                <option value="3" {% if template_data.user_rating == 3 %}selected{% endif %}>3 Stars</option>
+                <option value="4" {% if template_data.user_rating == 4 %}selected{% endif %}>4 Stars</option>
+                <option value="5" {% if template_data.user_rating == 5 %}selected{% endif %}>5 Stars</option>
+              </select>
+              <button type = "submit" class = "btn bg-dark text-white">Submit</button>
+          </form>
+          {% if template_data.user_rating %}
+            <p><b>
+              You rated this movie {{ template_data.user_rating}} / 5 Stars!
+            </b></p>
+          {% endif %}
+        </div>
+        {% endif %}
+        <p>
+          <b>Total Ratings: </b>
+          {{ template_data.rating_count }}
+        </p>
         <h2>Reviews</h2>
         <hr />
         <ul class="list-group">
