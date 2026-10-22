@@ -1,6 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Movie, Review
 from django.contrib.auth.decorators import login_required
+from django.db.models.functions import Coalesce
+from django.db.models import Sum, Count, Value
+from cart.models import Item
+from django.contrib.admin.views.decorators import staff_member_required
 
 # Create your views here.
 
@@ -68,3 +72,21 @@ def delete_review(request, id, review_id):
     review = get_object_or_404(Review, id=review_id, user=request.user)
     review.delete()
     return redirect('movies.show', id=id)
+
+@staff_member_required
+def admin_stats(request):
+
+    most_purchased = Movie.objects.annotate(
+        times_bought = Coalesce(Sum('item__quantity'), Value(0))
+    ).order_by('-times_bought', 'name').first()
+
+    most_reviewed = Movie.objects.annotate(
+        times_reviewed = Coalesce(Count('review'), Value(0))
+    ).order_by('-times_reviewed', 'name').first()
+
+    template_data = {}
+    template_data['title'] = 'Admin Stats for Purchases and Reviews'
+    template_data['most_purchased'] = most_purchased
+    template_data['most_reviewed'] = most_reviewed
+
+    return render(request, 'movies/admin_stats.html', {'template_data': template_data})
