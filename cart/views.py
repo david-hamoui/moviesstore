@@ -64,7 +64,6 @@ def purchase(request):
 
 @staff_member_required
 def top_buyers(request):
-    """Admin: top buyers."""
     buyers = (User.objects.annotate(movies=Sum('order__item__quantity'))
               .filter(movies__gt=0).order_by('-movies'))
     return render(request, 'cart/top_buyers.html',
