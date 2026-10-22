@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+    <h2>Most Bought and Reviewed Movies</h2>
+    <hr />
+    <div class="row mt-3">
+        <div class="col-md-6 md-3">
+            <div class="card p-4 text-center shadow-sm">
+                <h5 class="text-muted">Most purchased movie</h5>
+                <h3 class="my-2 text-primary">{{ template_data.most_purchased.name | default:None }}</h3>
+                <h3 class="my-2 text-primary">{{ template_data.most_purchased.times_bought | default:0 }}</h3>
+            </div>
+            <div class="card p-4 text-center shadow-sm">
+                <h5 class="text-muted">Most reviewed movie</h5>
+                <h3 class="my-2 text-primary">{{ template_data.most_reviewed.name | default:None }}</h3>
+                <h3 class="my-2 text-primary">{{ template_data.most_reviewed.times_reviewed | default:0 }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
