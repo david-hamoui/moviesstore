@@ -47,6 +47,7 @@
             <a class="nav-link" href="{% url 'accounts.orders' %}">Orders
             </a>
             {% if user.is_staff %}
+            <a class="nav-link" href="{% url 'cart.top_buyers' %}">Top Buyers</a>
             <a class="nav-link" href="{% url 'movies.admin_stats' %}">Admin Stats
             </a>
             {% endif %}
