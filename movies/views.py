@@ -1,10 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Movie, Review
+from .models import Movie, Review, Rating
 from django.contrib.auth.decorators import login_required
 from django.db.models.functions import Coalesce
 from django.db.models import Sum, Count, Value
 from cart.models import Item
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Count
+from django.db.models import Avg
 
 # Create your views here.
 
@@ -22,10 +24,23 @@ def index(request):
 def show(request, id):
     movie = Movie.objects.get(id=id)
     reviews = Review.objects.filter(movie=movie, reported=False)
+    avg_rating = Rating.objects.filter(movie=movie).aggregate(Avg('rating'))['rating__avg']
+    user_rating = None
+    if request.user.is_authenticated:
+        rating_obj = Rating.objects.filter(movie=movie, user=request.user).first()
+        if rating_obj:
+            user_rating = rating_obj.rating
+
     template_data = {}
     template_data['title'] = movie.name
     template_data['movie'] = movie
     template_data['reviews'] = reviews
+    template_data['rating'] = user_rating
+    template_data['rating_count'] = Rating.objects.filter(movie=movie).count()
+    if avg_rating:
+        template_data['average_rating'] = round(avg_rating, 1)
+    else:
+        template_data['average_rating'] = None
     return render(request, 'movies/show.html', {'template_data': template_data})
 
 @login_required
@@ -34,6 +49,7 @@ def report_review(request, id, review_id):
     review.reported = True
     review.save()
     return redirect('movies.show', id=id)
+
 
 
 @login_required
@@ -48,6 +64,8 @@ def create_review(request, id):
         return redirect('movies.show', id=id)
     else:
         return redirect('movies.show', id=id)
+
+
 
 @login_required
 def edit_review(request, id, review_id):
@@ -66,6 +84,8 @@ def edit_review(request, id, review_id):
         return redirect('movies.show', id=id)
     else:
         return redirect('movies.show', id=id)
+
+
 
 @login_required
 def delete_review(request, id, review_id):
@@ -90,3 +110,31 @@ def admin_stats(request):
     template_data['most_reviewed'] = most_reviewed
 
     return render(request, 'movies/admin_stats.html', {'template_data': template_data})
+
+
+def top_commenters(request):
+    if not request.user.is_staff:
+        return redirect('accounts.login')
+
+    counts = (Review.objects
+              .values('user__username')
+              .annotate(total=Count('id'))
+              .order_by('-total'))
+
+    top_total = counts[0]['total'] if counts else 0
+    top_users = [c['user__username'] for c in counts if c['total'] == top_total]
+
+    template_data = {'title': 'Top Commenter', 'top_users': top_users, 'top_total': top_total}
+    return render(request, 'movies/top_commenters.html', {'template_data': template_data})
+
+@login_required
+def rate_movie(request, id):
+    movie = get_object_or_404(Movie, id=id)
+    rating = int(request.POST.get('stars', 0))
+    if 1 <= rating <= 5:
+        Rating.objects.update_or_create(
+            movie=movie,
+            user=request.user,
+            defaults={'rating': rating}
+        )
+    return redirect('movies.show', id=id)
