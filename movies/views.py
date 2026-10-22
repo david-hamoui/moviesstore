@@ -125,7 +125,7 @@ def top_commenters(request):
     top_users = [c['user__username'] for c in counts if c['total'] == top_total]
 
     template_data = {'title': 'Top Commenter', 'top_users': top_users, 'top_total': top_total}
-    return render(request, 'movies/top_commenters.html', {'template_data': template_data})
+    return render(request, 'movies/top_commenter.html', {'template_data': template_data})
 
 @login_required
 def rate_movie(request, id):
