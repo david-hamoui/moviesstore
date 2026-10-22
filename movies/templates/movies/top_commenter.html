@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="p-3">
+  <div class="container">
+    <div class="col-md-8 mx-auto mt-3">
+      <h2>User Engagement</h2>
+      <hr />
+      {% if template_data.top_users %}
+      <p><b>Most comments:</b> {{ template_data.top_users|join:", " }}</p>
+      <p><b>Comments posted:</b> {{ template_data.top_total }}</p>
+      {% else %}
+      <p>No comments have been posted yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock content %}
+

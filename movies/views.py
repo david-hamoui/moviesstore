@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Movie, Review
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count
 
 # Create your views here.
 
@@ -32,6 +33,7 @@ def report_review(request, id, review_id):
     return redirect('movies.show', id=id)
 
 
+
 @login_required
 def create_review(request, id):
     if request.method == 'POST' and request.POST['comment']!= '':
@@ -44,6 +46,8 @@ def create_review(request, id):
         return redirect('movies.show', id=id)
     else:
         return redirect('movies.show', id=id)
+
+
 
 @login_required
 def edit_review(request, id, review_id):
@@ -63,8 +67,28 @@ def edit_review(request, id, review_id):
     else:
         return redirect('movies.show', id=id)
 
+
+
 @login_required
 def delete_review(request, id, review_id):
     review = get_object_or_404(Review, id=review_id, user=request.user)
     review.delete()
     return redirect('movies.show', id=id)
+
+
+
+def top_commenters(request):
+    if not request.user.is_staff:
+        return redirect('accounts.login')
+
+    counts = (Review.objects
+              .values('user__username')
+              .annotate(total=Count('id'))
+              .order_by('-total'))
+
+    top_total = counts[0]['total'] if counts else 0
+    top_users = [c['user__username'] for c in counts if c['total'] == top_total]
+
+    template_data = {'title': 'Top Commenter', 'top_users': top_users, 'top_total': top_total}
+    return render(request, 'movies/top_commenters.html', {'template_data': template_data})
+
